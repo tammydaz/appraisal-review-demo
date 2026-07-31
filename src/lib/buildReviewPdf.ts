@@ -41,3 +41,14 @@ export function buildReviewPdfBase64(
   const base64 = doc.output('datauristring').split(',')[1] ?? '';
   return { base64, filename };
 }
+
+export function buildReviewPdfFile(
+  header: ReviewHeader,
+  result: ExtractResult,
+  options?: { loanNumber?: string; collateralId?: string },
+): { file: File; filename: string } {
+  const { base64, filename } = buildReviewPdfBase64(header, result, options);
+  const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  const blob = new Blob([bytes], { type: 'application/pdf' });
+  return { file: new File([blob], filename, { type: 'application/pdf' }), filename };
+}

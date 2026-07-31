@@ -113,8 +113,8 @@ export default function Settings() {
           <li>Redeploy after saving env vars.</li>
         </ol>
         <p className="settings-sources">
-          No server mail config? Use <strong>Open in Mail</strong> on the review page — opens the
-          Mail app on iPhone with the review text (attach PDF manually from Print / Save PDF).
+          On iPhone, tap <strong>Email PDF</strong> on the review page → choose <strong>Mail</strong> in the
+          share sheet. The PDF is attached automatically — add Barbara &amp; Richard as recipients.
         </p>
       </div>
 

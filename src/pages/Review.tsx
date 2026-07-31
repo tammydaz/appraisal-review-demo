@@ -3,9 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import PhotoManifestPanel from '../components/PhotoManifestPanel';
 import { checkPhotoManifest, preferManifestPhotos } from '../lib/checkPhotoManifest';
 import { extractUadPackage } from '../lib/extractUadPackage';
-import { buildReviewEmailContent, mailComposeUrl } from '../lib/buildReviewEmail';
-import { buildReviewPdfBase64 } from '../lib/buildReviewPdf';
-import { sendReviewEmail } from '../lib/emailReview';
+import { deliverReviewPdf } from '../lib/deliverReviewPdf';
 import { basicFactualChecks } from '../lib/basicFactualChecks';
 import { extractFromReportLive } from '../lib/analyzeAppraisal';
 import { delay, getDemoExtract } from '../lib/demoAnalysis';
@@ -199,8 +197,6 @@ export default function Review() {
     }
   }, [text, id, mergePhotos, packageXml]);
 
-  const reviewRef = () => ({ loanNumber: loanNumber.trim() || undefined, collateralId: appraisal?.collateralId });
-
   const copyHeader = async () => {
     if (!header) return;
     const prefix = loanNumber.trim() ? [`Loan Number: ${loanNumber.trim()}`, ''] : [];
@@ -232,37 +228,34 @@ export default function Review() {
     window.print();
   };
 
-  const openMailCompose = () => {
+  const emailPdf = async () => {
     if (!header || !result) return;
-    const { subject, text } = buildReviewEmailContent(header, result, reviewRef());
-    window.location.href = mailComposeUrl(recipient, subject, text);
-  };
-
-  const emailReview = async () => {
-    if (!header || !result) return;
-    if (!recipient.trim()) {
-      setEmailStatus('Enter a recipient email address.');
-      return;
-    }
 
     setEmailSending(true);
     setEmailStatus('');
 
-    const { subject, text, html } = buildReviewEmailContent(header, result, reviewRef());
-    const { base64, filename } = buildReviewPdfBase64(header, result, reviewRef());
-
     try {
-      await sendReviewEmail({
-        to: recipient.trim(),
-        subject,
-        text,
-        html,
-        pdfBase64: base64,
-        pdfFilename: filename,
+      const { method, filename } = await deliverReviewPdf({
+        header,
+        result,
+        loanNumber: loanNumber.trim() || undefined,
+        collateralId: appraisal?.collateralId,
+        recipient: recipient.trim() || undefined,
       });
-      setEmailStatus(`Sent to ${recipient.trim()} via iCloud Mail.`);
+
+      if (method === 'share') {
+        setEmailStatus('PDF shared — pick Mail and add Barbara & Richard.');
+      } else if (method === 'server') {
+        setEmailStatus(`Sent PDF to ${recipient.trim()} via iCloud Mail.`);
+      } else {
+        setEmailStatus(`PDF downloaded (${filename}). Attach in Mail and send.`);
+      }
     } catch (err) {
-      setEmailStatus(err instanceof Error ? err.message : 'Email failed');
+      if (err instanceof Error && err.name === 'AbortError') {
+        setEmailStatus('');
+      } else {
+        setEmailStatus(err instanceof Error ? err.message : 'Could not email PDF');
+      }
     } finally {
       setEmailSending(false);
     }
@@ -442,10 +435,10 @@ export default function Review() {
 
               <div className="email-bar no-print">
                 <label className="email-field">
-                  <span>To</span>
+                  <span>To (optional on iPhone — add in Mail)</span>
                   <input
                     type="email"
-                    placeholder="barbara@… or richard@…"
+                    placeholder="barbara@… (desktop / auto-send only)"
                     value={recipient}
                     onChange={(e) => setRecipient(e.target.value)}
                   />
@@ -454,15 +447,15 @@ export default function Review() {
                   <button
                     className="btn btn-primary btn-sm"
                     type="button"
-                    onClick={emailReview}
+                    onClick={emailPdf}
                     disabled={emailSending}
                   >
-                    {emailSending ? 'Sending…' : 'Send Email + PDF'}
-                  </button>
-                  <button className="btn btn-sm" type="button" onClick={openMailCompose}>
-                    Open in Mail
+                    {emailSending ? 'Preparing PDF…' : 'Email PDF'}
                   </button>
                 </div>
+                <p className="email-hint">
+                  iPhone: opens share sheet → choose <strong>Mail</strong> → PDF is attached.
+                </p>
                 {emailStatus && (
                   <p className={`email-status ${emailStatus.startsWith('Sent') ? 'ok' : 'err'}`}>
                     {emailStatus}
