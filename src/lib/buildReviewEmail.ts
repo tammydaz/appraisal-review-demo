@@ -123,13 +123,14 @@ export function buildReviewEmailContent(
   return { subject, text, html };
 }
 
-export function gmailComposeUrl(to: string, subject: string, body: string): string {
+export function mailComposeUrl(to: string, subject: string, body: string): string {
   const params = new URLSearchParams({
-    view: 'cm',
-    fs: '1',
-    to: to.trim(),
-    su: subject,
+    subject,
     body: body.slice(0, 8000),
   });
-  return `https://mail.google.com/mail/?${params.toString()}`;
+  const addr = encodeURIComponent(to.trim());
+  return `mailto:${addr}?${params.toString()}`;
 }
+
+/** @deprecated Use mailComposeUrl — opens native Mail app on iPhone */
+export const gmailComposeUrl = mailComposeUrl;

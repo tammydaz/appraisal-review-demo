@@ -33,14 +33,16 @@ export async function handleEmail(
       status: 500,
       body: JSON.stringify({
         error:
-          'Gmail not configured. Add GMAIL_USER and GMAIL_APP_PASSWORD to .env, or use Open in Gmail.',
+          'iCloud Mail not configured. Add ICLOUD_USER and ICLOUD_APP_PASSWORD in Vercel env (or .env locally), or use Open in Mail.',
       }),
     };
   }
 
   try {
     const transport = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.mail.me.com',
+      port: 587,
+      secure: false,
       auth: { user, pass },
     });
 
@@ -65,6 +67,6 @@ export async function handleEmail(
     return { status: 200, body: JSON.stringify({ ok: true }) };
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    return { status: 502, body: JSON.stringify({ error: `Gmail send failed: ${msg}` }) };
+    return { status: 502, body: JSON.stringify({ error: `iCloud Mail send failed: ${msg}` }) };
   }
 }

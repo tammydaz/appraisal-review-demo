@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import PhotoManifestPanel from '../components/PhotoManifestPanel';
 import { checkPhotoManifest, preferManifestPhotos } from '../lib/checkPhotoManifest';
 import { extractUadPackage } from '../lib/extractUadPackage';
-import { buildReviewEmailContent, gmailComposeUrl } from '../lib/buildReviewEmail';
+import { buildReviewEmailContent, mailComposeUrl } from '../lib/buildReviewEmail';
 import { buildReviewPdfBase64 } from '../lib/buildReviewPdf';
 import { sendReviewEmail } from '../lib/emailReview';
 import { basicFactualChecks } from '../lib/basicFactualChecks';
@@ -232,10 +232,10 @@ export default function Review() {
     window.print();
   };
 
-  const openGmailCompose = () => {
+  const openMailCompose = () => {
     if (!header || !result) return;
     const { subject, text } = buildReviewEmailContent(header, result, reviewRef());
-    window.open(gmailComposeUrl(recipient, subject, text), '_blank');
+    window.location.href = mailComposeUrl(recipient, subject, text);
   };
 
   const emailReview = async () => {
@@ -260,7 +260,7 @@ export default function Review() {
         pdfBase64: base64,
         pdfFilename: filename,
       });
-      setEmailStatus(`Sent to ${recipient.trim()} via Gmail.`);
+      setEmailStatus(`Sent to ${recipient.trim()} via iCloud Mail.`);
     } catch (err) {
       setEmailStatus(err instanceof Error ? err.message : 'Email failed');
     } finally {
@@ -442,10 +442,10 @@ export default function Review() {
 
               <div className="email-bar no-print">
                 <label className="email-field">
-                  <span>To (Gmail)</span>
+                  <span>To</span>
                   <input
                     type="email"
-                    placeholder="recipient@gmail.com"
+                    placeholder="barbara@… or richard@…"
                     value={recipient}
                     onChange={(e) => setRecipient(e.target.value)}
                   />
@@ -459,8 +459,8 @@ export default function Review() {
                   >
                     {emailSending ? 'Sending…' : 'Send Email + PDF'}
                   </button>
-                  <button className="btn btn-sm" type="button" onClick={openGmailCompose}>
-                    Open in Gmail
+                  <button className="btn btn-sm" type="button" onClick={openMailCompose}>
+                    Open in Mail
                   </button>
                 </div>
                 {emailStatus && (

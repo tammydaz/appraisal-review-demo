@@ -56,8 +56,8 @@ function apiDevProxy(env: Record<string, string>): Plugin {
           if (url === '/api/email') {
             const input = (await readJsonBody(req)) as Parameters<typeof handleEmail>[0];
             const result = await handleEmail(input, {
-              user: env.GMAIL_USER ?? '',
-              pass: env.GMAIL_APP_PASSWORD ?? '',
+              user: env.ICLOUD_USER ?? env.GMAIL_USER ?? '',
+              pass: env.ICLOUD_APP_PASSWORD ?? env.GMAIL_APP_PASSWORD ?? '',
             });
             send(result.status, result.body);
             return;

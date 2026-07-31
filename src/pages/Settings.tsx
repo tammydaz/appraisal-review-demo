@@ -47,7 +47,7 @@ export default function Settings() {
             id="defaultRecipientEmail"
             type="email"
             className="text-input"
-            placeholder="colleague@gmail.com"
+            placeholder="colleague@company.com"
             value={settings.defaultRecipientEmail}
             onChange={(e) => update({ defaultRecipientEmail: e.target.value })}
           />
@@ -90,28 +90,31 @@ export default function Settings() {
       </div>
 
       <div className="settings-info">
-        <h2>Gmail setup (for Send Email + PDF)</h2>
+        <h2>iCloud Mail setup (for Send Email + PDF)</h2>
         <ol>
-          <li>Use a Gmail account with <strong>2-Step Verification</strong> turned on.</li>
           <li>
-            Go to{' '}
-            <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noreferrer">
-              Google App Passwords
-            </a>{' '}
-            and create one for &quot;Mail&quot;.
+            On your iPhone or at{' '}
+            <a href="https://appleid.apple.com" target="_blank" rel="noreferrer">
+              appleid.apple.com
+            </a>
+            , turn on <strong>Two-Factor Authentication</strong> for your Apple ID.
           </li>
           <li>
-            Copy <code>.env.example</code> to <code>.env</code> and set:
-            <br />
-            <code>GMAIL_USER=you@gmail.com</code>
-            <br />
-            <code>GMAIL_APP_PASSWORD=your 16-char app password</code>
+            Create an <strong>app-specific password</strong> (Sign-In and Security → App-Specific
+            Passwords → generate one for &quot;Mail&quot;).
           </li>
-          <li>Restart <code>npm run dev</code>.</li>
+          <li>
+            In Vercel → Project → Settings → Environment Variables, set:
+            <br />
+            <code>ICLOUD_USER=you@icloud.com</code> (or @me.com / @mac.com)
+            <br />
+            <code>ICLOUD_APP_PASSWORD=your app-specific password</code>
+          </li>
+          <li>Redeploy after saving env vars.</li>
         </ol>
         <p className="settings-sources">
-          No Gmail config? Use <strong>Open in Gmail</strong> on the review page — opens Gmail
-          compose in your browser with the review text (no PDF attachment).
+          No server mail config? Use <strong>Open in Mail</strong> on the review page — opens the
+          Mail app on iPhone with the review text (attach PDF manually from Print / Save PDF).
         </p>
       </div>
 

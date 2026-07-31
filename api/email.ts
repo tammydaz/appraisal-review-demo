@@ -9,8 +9,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const body = req.body ?? {};
   const result = await handleEmail(body, {
-    user: (process.env.GMAIL_USER ?? '').trim(),
-    pass: (process.env.GMAIL_APP_PASSWORD ?? '').trim(),
+    user: (process.env.ICLOUD_USER ?? process.env.GMAIL_USER ?? '').trim(),
+    pass: (process.env.ICLOUD_APP_PASSWORD ?? process.env.GMAIL_APP_PASSWORD ?? '').trim(),
   });
 
   res.status(result.status);
