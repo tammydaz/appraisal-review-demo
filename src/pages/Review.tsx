@@ -6,11 +6,13 @@ import { extractUadPackage } from '../lib/extractUadPackage';
 import { buildReviewEmailContent, gmailComposeUrl } from '../lib/buildReviewEmail';
 import { buildReviewPdfBase64 } from '../lib/buildReviewPdf';
 import { sendReviewEmail } from '../lib/emailReview';
+import { basicFactualChecks } from '../lib/basicFactualChecks';
 import { extractFromReportLive } from '../lib/analyzeAppraisal';
 import { delay, getDemoExtract } from '../lib/demoAnalysis';
 import { fmtDate, usd } from '../lib/format';
 import { HEADER_LABELS, UAD_SUMMARY_FIELD_GROUPS } from '../lib/uadSummaryFields';
 import { APPRAISAL_DETAILS, getAppraisal } from '../lib/sampleAppraisals';
+import { hasXmlHeaderFields, headerFromXmlFields } from '../lib/xmlToHeader';
 import type { ExtractResult, PhotoCheckItem, ReviewHeader } from '../types/Appraisal';
 import { CATEGORY_LABEL, loadSettings } from '../types/Appraisal';
 import './Review.css';
@@ -159,7 +161,20 @@ export default function Review() {
         setResult(merged);
         setHeader({ ...merged.header });
         setPhotoManifest(merged.photosCheck);
-      } else {
+      } else if (hasXmlHeaderFields(packageXml)) {
+        setLoadingStep('Reading UAD 3.6 XML and running checks (browser-only)…');
+        await delay(400);
+        const headerFromXml = headerFromXmlFields(packageXml, cfg.reviewerName);
+        const extract: ExtractResult = {
+          header: headerFromXml,
+          factualFlags: basicFactualChecks(text),
+          photosCheck: [],
+        };
+        const merged = mergePhotos(extract);
+        setResult(merged);
+        setHeader({ ...merged.header });
+        setPhotoManifest(merged.photosCheck);
+      } else if (!cfg.demoMode) {
         setLoadingStep('Extracting Summary fields and running factual checks…');
         const live = await extractFromReportLive(
           text,
@@ -171,6 +186,10 @@ export default function Review() {
         setResult(merged);
         setHeader({ ...merged.header });
         setPhotoManifest(merged.photosCheck);
+      } else {
+        setError(
+          'Upload a UAD 3.6 ZIP (with XML), or turn off Demo Mode in Settings for pasted text / live AI.',
+        );
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Extraction failed');
@@ -178,7 +197,7 @@ export default function Review() {
       setLoading(false);
       setLoadingStep('');
     }
-  }, [text, id, mergePhotos]);
+  }, [text, id, mergePhotos, packageXml]);
 
   const reviewRef = () => ({ loanNumber: loanNumber.trim() || undefined, collateralId: appraisal?.collateralId });
 
