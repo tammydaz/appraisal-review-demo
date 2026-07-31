@@ -17,9 +17,15 @@ function Layout() {
   );
 }
 
+function routerBasename(): string | undefined {
+  const base = import.meta.env.BASE_URL;
+  if (!base || base === '/') return undefined;
+  return base.replace(/\/$/, '');
+}
+
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={routerBasename()}>
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<Workday />} />
